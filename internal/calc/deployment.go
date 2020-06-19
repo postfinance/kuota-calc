@@ -5,6 +5,7 @@ import (
 	"math"
 
 	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
@@ -14,6 +15,20 @@ func Deployment(deployment appsv1.Deployment) (*ResourceUsage, error) {
 	var overhead float64
 
 	replicas := deployment.Spec.Replicas
+
+	if *replicas == 0 {
+		return &ResourceUsage{
+			CPU:    new(resource.Quantity),
+			Memory: new(resource.Quantity),
+			Details: Details{
+				Version:  deployment.APIVersion,
+				Kind:     deployment.Kind,
+				Name:     deployment.Name,
+				Replicas: *replicas,
+			},
+		}, nil
+	}
+
 	strategy := deployment.Spec.Strategy
 
 	switch strategy.Type {
@@ -63,9 +78,14 @@ func Deployment(deployment appsv1.Deployment) (*ResourceUsage, error) {
 	cpu.Set(int64(math.Round(float64(cpu.Value()) * float64(*replicas) * overhead)))
 
 	resourceUsage := ResourceUsage{
-		CPU:      cpu,
-		Memory:   memory,
-		Overhead: overhead * 100,
+		CPU:    cpu,
+		Memory: memory,
+		Details: Details{
+			Version:  deployment.APIVersion,
+			Kind:     deployment.Kind,
+			Name:     deployment.Name,
+			Replicas: *replicas,
+		},
 	}
 
 	return &resourceUsage, nil

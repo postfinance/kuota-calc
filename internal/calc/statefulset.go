@@ -27,9 +27,14 @@ func StatefulSet(s appsv1.StatefulSet) (*ResourceUsage, error) {
 	cpu.Set(int64(math.Round(float64(cpu.Value()) * float64(replicas))))
 
 	resourceUsage := ResourceUsage{
-		CPU:      cpu,
-		Memory:   memory,
-		Overhead: 100,
+		CPU:    cpu,
+		Memory: memory,
+		Details: Details{
+			Version:  s.APIVersion,
+			Kind:     s.Kind,
+			Name:     s.Name,
+			Replicas: replicas,
+		},
 	}
 
 	return &resourceUsage, nil

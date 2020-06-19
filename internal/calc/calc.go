@@ -8,16 +8,22 @@ import (
 
 // ResourceUsage summarizes the usage of compute resources for a k8s resource.
 type ResourceUsage struct {
-	CPU      *resource.Quantity
-	Memory   *resource.Quantity
-	Overhead float64
+	CPU     *resource.Quantity
+	Memory  *resource.Quantity
+	Details Details
 }
 
-func podResources(podSpec *v1.PodSpec) (*resource.Quantity, *resource.Quantity) {
-	var (
-		cpu    = new(resource.Quantity)
-		memory = new(resource.Quantity)
-	)
+// Details contains a few details to identify a k8s resource.
+type Details struct {
+	Version  string
+	Kind     string
+	Name     string
+	Replicas int32
+}
+
+func podResources(podSpec *v1.PodSpec) (cpu, memory *resource.Quantity) {
+	cpu = new(resource.Quantity)
+	memory = new(resource.Quantity)
 
 	for _, container := range podSpec.Containers {
 		cpu.Add(*container.Resources.Limits.Cpu())
@@ -29,5 +35,5 @@ func podResources(podSpec *v1.PodSpec) (*resource.Quantity, *resource.Quantity) 
 		memory.Add(*container.Resources.Limits.Memory())
 	}
 
-	return cpu, memory
+	return
 }

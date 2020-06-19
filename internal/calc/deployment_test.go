@@ -9,71 +9,41 @@ import (
 	"k8s.io/client-go/deprecated/scheme"
 )
 
-var testDeployment = `---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: myapp
-  name: myapp
-spec:
-  progressDeadlineSeconds: 600
-  replicas: 10
-  revisionHistoryLimit: 10
-  selector:
-    matchLabels:
-      app: myapp
-  strategy:
-    rollingUpdate:
-      maxSurge: 25%
-      maxUnavailable: 25%
-    type: RollingUpdate
-  template:
-    metadata:
-      creationTimestamp: null
-      labels:
-        app: myapp
-    spec:
-      containers:
-        - image: myapp:v1.0.7
-          command:
-            - sleep
-            - infinity
-          imagePullPolicy: IfNotPresent
-          name: myapp
-          resources:
-            limits:
-              cpu: '1'
-              memory: 4Gi
-            requests:
-              cpu: '250m'
-              memory: 2Gi
-          terminationMessagePath: /dev/termination-log
-          terminationMessagePolicy: File
-      dnsPolicy: ClusterFirst
-      restartPolicy: Always
-      schedulerName: default-scheduler
-      securityContext: {}
-      terminationGracePeriodSeconds: 30`
-
 func TestDeployment(t *testing.T) {
-	object, _, err := scheme.Codecs.UniversalDeserializer().Decode([]byte(testDeployment), nil, nil)
-	if err != nil {
-		t.Error(err)
-	}
-	deployment := object.(*appsv1.Deployment)
-
 	var tests = []struct {
-		name           string
-		deployment     appsv1.Deployment
-		expectedCPU    resource.Quantity
-		expectedMemory resource.Quantity
+		name             string
+		deployment       appsv1.Deployment
+		expectedCPU      resource.Quantity
+		expectedMemory   resource.Quantity
+		expectedReplicas int32
 	}{
 		{
-			name:           "ok",
-			deployment:     *deployment,
-			expectedCPU:    resource.MustParse("11"),
-			expectedMemory: resource.MustParse("44Gi"),
+			name:             "normal deployment",
+			deployment:       *deploymentFromYaml(t, normalDeployment),
+			expectedCPU:      resource.MustParse("11"),
+			expectedMemory:   resource.MustParse("44Gi"),
+			expectedReplicas: 10,
+		},
+		{
+			name:             "deployment without strategy",
+			deployment:       *deploymentFromYaml(t, deploymentWithoutStrategy),
+			expectedCPU:      resource.MustParse("11"),
+			expectedMemory:   resource.MustParse("44Gi"),
+			expectedReplicas: 10,
+		},
+		{
+			name:             "deployment with absolute unavailable/surge values",
+			deployment:       *deploymentFromYaml(t, deploymentWithAbsoluteValues),
+			expectedCPU:      resource.MustParse("12"),
+			expectedMemory:   resource.MustParse("48Gi"),
+			expectedReplicas: 10,
+		},
+		{
+			name:             "zero replica deployment",
+			deployment:       *deploymentFromYaml(t, zeroReplicaDeployment),
+			expectedCPU:      resource.MustParse("0"),
+			expectedMemory:   resource.MustParse("0"),
+			expectedReplicas: 0,
 		},
 	}
 
@@ -87,6 +57,16 @@ func TestDeployment(t *testing.T) {
 
 			r.Equalf(test.expectedCPU.Value(), usage.CPU.Value(), "cpu value")
 			r.Equalf(test.expectedMemory.Value(), usage.Memory.Value(), "memory value")
+			r.Equal(test.expectedReplicas, usage.Details.Replicas, "replicas")
 		})
 	}
+}
+
+func deploymentFromYaml(t *testing.T, deployment string) *appsv1.Deployment {
+	object, _, err := scheme.Codecs.UniversalDeserializer().Decode([]byte(deployment), nil, nil)
+	if err != nil {
+		t.Error(err)
+	}
+
+	return object.(*appsv1.Deployment)
 }
