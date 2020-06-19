@@ -84,7 +84,7 @@ func main() {
 
 		object, gvk, err := decode(data, nil, nil)
 		if err != nil {
-			log.Fatalf("decoding: %s\n", err)
+			log.Fatalf("decoding: %s", err)
 			continue
 		}
 
@@ -106,7 +106,7 @@ func main() {
 
 			summary = append(summary, usage)
 		default:
-			log.Debugf("ignoring %s\n", gvk)
+			log.Debugf("ignoring %s", gvk)
 			continue
 		}
 	}
