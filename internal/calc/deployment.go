@@ -2,6 +2,7 @@ package calc
 
 import (
 	"fmt"
+	"math"
 
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -54,9 +55,14 @@ func Deployment(deployment appsv1.Deployment) (*ResourceUsage, error) {
 		memory.Add(*container.Resources.Limits.Memory())
 	}
 
+	mem := float64(memory.Value()) * float64(*replicas) * overhead
+	memory.Set(int64(math.Round(mem)))
+
+	cpu.Set(int64(math.Round(float64(cpu.Value()) * float64(*replicas) * overhead)))
+
 	resourceUsage := ResourceUsage{
-		CPU:      float64(cpu.ScaledValue(resource.Kilo)*int64(*replicas)) * overhead,
-		Memory:   float64(memory.ScaledValue(resource.Mega)*int64(*replicas)) * overhead,
+		CPU:      cpu,
+		Memory:   memory,
 		Overhead: overhead * 100,
 	}
 

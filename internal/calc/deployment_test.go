@@ -1,11 +1,11 @@
 package calc
 
 import (
-	"math"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/client-go/deprecated/scheme"
 )
 
@@ -14,15 +14,15 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: rhel
-  name: rhel
+    app: myapp
+  name: myapp
 spec:
   progressDeadlineSeconds: 600
   replicas: 10
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      app: rhel
+      app: myapp
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -32,15 +32,15 @@ spec:
     metadata:
       creationTimestamp: null
       labels:
-        app: rhel
+        app: myapp
     spec:
       containers:
-        - image: linux-docker-local.repo.pnet.ch/pf/rhel:7
+        - image: myapp:v1.0.7
           command:
             - sleep
             - infinity
           imagePullPolicy: IfNotPresent
-          name: rhel
+          name: myapp
           resources:
             limits:
               cpu: '1'
@@ -61,18 +61,16 @@ func TestDeployment(t *testing.T) {
 	deployment := object.(*appsv1.Deployment)
 
 	var tests = []struct {
-		name          string
-		deployment    appsv1.Deployment
-		expectedUsage ResourceUsage
+		name           string
+		deployment     appsv1.Deployment
+		expectedCPU    resource.Quantity
+		expectedMemory resource.Quantity
 	}{
 		{
-			name:       "ok",
-			deployment: *deployment,
-			expectedUsage: ResourceUsage{
-				CPU:      11,
-				Memory:   45056,
-				Overhead: 110,
-			},
+			name:           "ok",
+			deployment:     *deployment,
+			expectedCPU:    resource.MustParse("11"),
+			expectedMemory: resource.MustParse("44Gi"),
 		},
 	}
 
@@ -84,9 +82,8 @@ func TestDeployment(t *testing.T) {
 			r.NoError(err)
 			r.NotEmpty(usage)
 
-			r.Equal(test.expectedUsage.CPU, math.Round(usage.CPU))
-			r.Equal(test.expectedUsage.Memory, math.Round(usage.Memory))
-			r.Equal(test.expectedUsage.Overhead, math.Round(usage.Overhead))
+			r.Equal(test.expectedCPU.Value(), usage.CPU.Value())
+			r.Equal(test.expectedMemory.Value(), usage.Memory.Value())
 		})
 	}
 }

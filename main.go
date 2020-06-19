@@ -44,7 +44,7 @@ Usage: cat deployment.yaml | kuota-calc`)
 			log.Fatal(err)
 		}
 
-		fmt.Printf("CPU: %f\nMemory: %f\nOverhead: %f%%\n",
+		fmt.Printf("CPU: %s\nMemory: %s\nOverhead: %f%%\n",
 			usage.CPU,
 			usage.Memory,
 			usage.Overhead,
