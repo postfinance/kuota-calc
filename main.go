@@ -1,14 +1,17 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 
 	"github.com/postfinance/kuota-calc/internal/calc"
 	appsv1 "k8s.io/api/apps/v1"
-	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/apimachinery/pkg/util/yaml"
+	"k8s.io/client-go/deprecated/scheme"
 )
 
 func main() {
@@ -25,31 +28,64 @@ Usage: cat deployment.yaml | kuota-calc`)
 		return
 	}
 
-	data, err := ioutil.ReadAll(os.Stdin)
-	if err != nil {
-		log.Fatal(err)
-	}
+	var (
+		summary []*calc.ResourceUsage
+	)
 
-	decode := scheme.Codecs.UniversalDeserializer().Decode
+	r := yaml.NewYAMLReader(bufio.NewReader(os.Stdin))
 
-	object, gvk, err := decode(data, nil, nil)
-	if err != nil {
-		log.Fatalf("decode: %s\n", err)
-	}
-
-	switch obj := object.(type) {
-	case *appsv1.Deployment:
-		usage, err := calc.Deployment(*obj)
+	for {
+		data, err := r.Read()
 		if err != nil {
+			if err == io.EOF {
+				break
+			}
+
 			log.Fatal(err)
 		}
 
-		fmt.Printf("CPU: %s\nMemory: %s\nOverhead: %f%%\n",
-			usage.CPU,
-			usage.Memory,
-			usage.Overhead,
-		)
-	default:
-		log.Fatalf("%s is not supported\n", gvk)
+		decode := scheme.Codecs.UniversalDeserializer().Decode
+
+		object, gvk, err := decode(data, nil, nil)
+		if err != nil {
+			log.Fatalf("decode: %s\n", err)
+		}
+
+		switch obj := object.(type) {
+		case *appsv1.Deployment:
+			usage, err := calc.Deployment(*obj)
+			if err != nil {
+				log.Printf("ERROR: %s\n", err)
+				continue
+			}
+
+			summary = append(summary, usage)
+		case *appsv1.StatefulSet:
+			usage, err := calc.StatefulSet(*obj)
+			if err != nil {
+				log.Printf("ERROR: %s\n", err)
+				continue
+			}
+
+			summary = append(summary, usage)
+		default:
+			log.Printf("ignoring %s\n", gvk)
+			continue
+		}
 	}
+
+	var (
+		cpuUsage    resource.Quantity
+		memoryUsage resource.Quantity
+	)
+
+	for _, u := range summary {
+		cpuUsage.Add(*u.CPU)
+		memoryUsage.Add(*u.Memory)
+	}
+
+	fmt.Printf("CPU: %s\nMemory: %s\n",
+		cpuUsage.String(),
+		memoryUsage.String(),
+	)
 }

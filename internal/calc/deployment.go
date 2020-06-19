@@ -5,7 +5,6 @@ import (
 	"math"
 
 	appsv1 "k8s.io/api/apps/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
@@ -21,6 +20,18 @@ func Deployment(deployment appsv1.Deployment) (*ResourceUsage, error) {
 	case appsv1.RecreateDeploymentStrategyType:
 		// no overhead on recreate
 		overhead = 1
+	case "":
+		// RollingUpdate is the default an can be an empty string. If so, set the defaults
+		// (https://pkg.go.dev/k8s.io/api/apps/v1?tab=doc#RollingUpdateDeployment) and continue calculation.
+		defaults := intstr.FromString("25%")
+		strategy = appsv1.DeploymentStrategy{
+			RollingUpdate: &appsv1.RollingUpdateDeployment{
+				MaxUnavailable: &defaults,
+				MaxSurge:       &defaults,
+			},
+		}
+
+		fallthrough
 	case appsv1.RollingUpdateDeploymentStrategyType:
 		// As per https://pkg.go.dev/k8s.io/api/apps/v1?tab=doc#RollingUpdateDeployment absolute number is calculated
 		// by rounding down.
@@ -41,19 +52,10 @@ func Deployment(deployment appsv1.Deployment) (*ResourceUsage, error) {
 
 		overhead = (float64(podOverhead) / float64(*replicas)) + 1
 	default:
-		return nil, fmt.Errorf("deployment strategy %s is not yet known", strategy.Type)
+		return nil, fmt.Errorf("deployment: %s deployment strategy %q is unknown", deployment.Name, strategy.Type)
 	}
 
-	var (
-		cpu    = new(resource.Quantity)
-		memory = new(resource.Quantity)
-	)
-
-	// TODO: handle initContainers
-	for _, container := range deployment.Spec.Template.Spec.Containers {
-		cpu.Add(*container.Resources.Limits.Cpu())
-		memory.Add(*container.Resources.Limits.Memory())
-	}
+	cpu, memory := podResources(&deployment.Spec.Template.Spec)
 
 	mem := float64(memory.Value()) * float64(*replicas) * overhead
 	memory.Set(int64(math.Round(mem)))

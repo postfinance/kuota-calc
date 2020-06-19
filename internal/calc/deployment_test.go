@@ -57,7 +57,10 @@ spec:
       terminationGracePeriodSeconds: 30`
 
 func TestDeployment(t *testing.T) {
-	object, _, _ := scheme.Codecs.UniversalDeserializer().Decode([]byte(testDeployment), nil, nil)
+	object, _, err := scheme.Codecs.UniversalDeserializer().Decode([]byte(testDeployment), nil, nil)
+	if err != nil {
+		t.Error(err)
+	}
 	deployment := object.(*appsv1.Deployment)
 
 	var tests = []struct {
@@ -82,8 +85,8 @@ func TestDeployment(t *testing.T) {
 			r.NoError(err)
 			r.NotEmpty(usage)
 
-			r.Equal(test.expectedCPU.Value(), usage.CPU.Value())
-			r.Equal(test.expectedMemory.Value(), usage.Memory.Value())
+			r.Equalf(test.expectedCPU.Value(), usage.CPU.Value(), "cpu value")
+			r.Equalf(test.expectedMemory.Value(), usage.Memory.Value(), "memory value")
 		})
 	}
 }
