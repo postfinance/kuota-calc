@@ -1,6 +1,6 @@
 ![ci](https://github.com/postfinance/kuota-calc/workflows/ci/badge.svg)
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/postfinance/kuota-calc)
-![Go Report Card](https://goreportcard.com/badge/github.com/postfinance/kuota-calc)](https://goreportcard.com/report/github.com/postfinance/kuota-calc)
+[![Go Report Card](https://goreportcard.com/badge/github.com/postfinance/kuota-calc)](https://goreportcard.com/report/github.com/postfinance/kuota-calc)
 ![License](https://img.shields.io/github/license/postfinance/kuota-calc)
 
 **This is still a work-in-progress**
