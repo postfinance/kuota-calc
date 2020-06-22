@@ -10,50 +10,13 @@ Simple utility to calculate the resource quota needed for your deployment. kuota
 deployment strategy, replicas and all containers into account.
 
 ## Example
-
-Deployment:
-```yaml
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: myapp
-  name: myapp
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: myapp
-  strategy:
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1
-    type: RollingUpdate
-  template:
-    metadata:
-        labels:
-        app: myapp
-    spec:
-      containers:
-      - image: myapp:0.1.0
-        imagePullPolicy: Always
-        name: myapp
-        resources:
-          limits:
-            cpu: 500m
-            memory: 128Mi
-          requests:
-            cpu: 250m
-            memory: 64Mi
-```
-
 ```bash
-$ cat deployment.yaml | kuota-calc -detailed
-Version    Kind          Name     Replicas    CPU    Memory
-apps/v1    Deployment    myapp    2           2      256Mi
+$ cat examples/deployment.yaml | kuota-calc -detailed
+Version    Kind           Name     Replicas    Strategy         MaxReplicas    CPU      Memory
+apps/v1    Deployment     myapp    10          RollingUpdate    11             5500m    2816Mi
+apps/v1    StatefulSet    myapp    3           RollingUpdate    3              3        12Gi
 
 Total
-CPU: 2
-Memory: 256Mi
+CPU: 8500m
+Memory: 15104Mi
 ```

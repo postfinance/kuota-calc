@@ -121,14 +121,16 @@ func main() {
 func printDetailed(usage []*calc.ResourceUsage) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 4, ' ', tabwriter.TabIndent)
 
-	fmt.Fprintf(w, "Version\tKind\tName\tReplicas\tCPU\tMemory\t\n")
+	fmt.Fprintf(w, "Version\tKind\tName\tReplicas\tStrategy\tMaxReplicas\tCPU\tMemory\t\n")
 
 	for _, u := range usage {
-		fmt.Fprintf(w, "%s\t%s\t%s\t%d\t%s\t%s\t\n",
+		fmt.Fprintf(w, "%s\t%s\t%s\t%d\t%s\t%d\t%s\t%s\t\n",
 			u.Details.Version,
 			u.Details.Kind,
 			u.Details.Name,
 			u.Details.Replicas,
+			u.Details.Strategy,
+			u.Details.MaxReplicas,
 			u.CPU,
 			u.Memory,
 		)

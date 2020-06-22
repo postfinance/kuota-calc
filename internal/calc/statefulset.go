@@ -30,10 +30,12 @@ func StatefulSet(s appsv1.StatefulSet) (*ResourceUsage, error) {
 		CPU:    cpu,
 		Memory: memory,
 		Details: Details{
-			Version:  s.APIVersion,
-			Kind:     s.Kind,
-			Name:     s.Name,
-			Replicas: replicas,
+			Version:     s.APIVersion,
+			Kind:        s.Kind,
+			Name:        s.Name,
+			Replicas:    replicas,
+			Strategy:    string(s.Spec.UpdateStrategy.Type),
+			MaxReplicas: replicas,
 		},
 	}
 

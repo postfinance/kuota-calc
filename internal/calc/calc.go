@@ -15,10 +15,12 @@ type ResourceUsage struct {
 
 // Details contains a few details to identify a k8s resource.
 type Details struct {
-	Version  string
-	Kind     string
-	Name     string
-	Replicas int32
+	Version     string
+	Kind        string
+	Name        string
+	Replicas    int32
+	Strategy    string
+	MaxReplicas int32
 }
 
 func podResources(podSpec *v1.PodSpec) (cpu, memory *resource.Quantity) {
