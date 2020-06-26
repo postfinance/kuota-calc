@@ -25,3 +25,11 @@ Pre-compiled statically linked binaries are available on the [releases page](htt
 kuota-calc can either be used as a kubectl plugin or invoked directly. If you intend to use kuota-calc as
 a kubectl plugin, simply place the binary anywhere in `$PATH` named `kubectl-kuota_calc` with execute permissions.
 For further information, see the offical documentation on kubectl plugins [here](https://kubernetes.io/docs/tasks/extend-kubectl/kubectl-plugins/).
+
+## supported k8s resources
+**kuota-calc is still a work-in progress**, there are plans to support more k8s resources (see [#5](https://github.com/postfinance/kuota-calc/issues/5) for more info). 
+
+Currently supported:
+
+- apps/v1 Deployment
+- apps/v1 StatefulSet
