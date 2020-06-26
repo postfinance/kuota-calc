@@ -4,8 +4,13 @@
 ![License](https://img.shields.io/github/license/postfinance/kuota-calc)
 
 # kuota-calc
-Simple utility to calculate the resource quota needed for your deployment. kuota-calc takes the
-deployment strategy, replicas and all containers into account.
+Simple utility to calculate the maximum needed resource quota for deployment(s). kuota-calc takes the
+deployment strategy, replicas and all containers into account, see [supported-resources](https://github.com/postfinance/kuota-calc#supported-k8s-resources) for a list of kubernetes resources which are currently supported by kuota-calc.
+
+## Motivation
+In shared environments such as kubernetes it is always a good idea to isolate/constrain different workloads to prevent them from infering each other. Kubernetes provides [Resource Quotas](https://kubernetes.io/docs/concepts/policy/resource-quotas/) to limit compute, storage and object resources of namespaces.
+
+Calculating the needed compute resources can be a bit challenging (especially with large and complex deployments) because we must respect certain settings/defaults like the deployment strategy, number of replicas and so on. This is where kuota-calc can help you, it calculates the maximum needed resource quota in order to be able to start a deployment of all resources at the same time by respecting deployment strategies, replicas and so on.
 
 ## Example
 ```bash
