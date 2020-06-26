@@ -4,17 +4,12 @@ on:
   push:
   pull_request:
 jobs:
-  goreleaser:
+  go-test:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@master
     - name: Setup Go
-      uses: actions/setup-go@v1
+      uses: actions/setup-go@v2
     - run: go version
     - run: go test -cover ./...
-    - name: GoReleaser
-      uses: goreleaser/goreleaser-action@v1
-      with:
-        version: latest
-        args: release --snapshot --rm-dist
