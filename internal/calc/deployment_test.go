@@ -6,13 +6,12 @@ import (
 	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
-	"k8s.io/client-go/deprecated/scheme"
 )
 
 func TestDeployment(t *testing.T) {
 	var tests = []struct {
 		name        string
-		deployment  appsv1.Deployment
+		deployment  string
 		cpu         resource.Quantity
 		memory      resource.Quantity
 		replicas    int32
@@ -21,7 +20,7 @@ func TestDeployment(t *testing.T) {
 	}{
 		{
 			name:        "normal deployment",
-			deployment:  *deploymentFromYaml(t, normalDeployment),
+			deployment:  normalDeployment,
 			cpu:         resource.MustParse("5500m"),
 			memory:      resource.MustParse("44Gi"),
 			replicas:    10,
@@ -30,7 +29,7 @@ func TestDeployment(t *testing.T) {
 		},
 		{
 			name:        "deployment without strategy",
-			deployment:  *deploymentFromYaml(t, deploymentWithoutStrategy),
+			deployment:  deploymentWithoutStrategy,
 			cpu:         resource.MustParse("11"),
 			memory:      resource.MustParse("44Gi"),
 			replicas:    10,
@@ -39,7 +38,7 @@ func TestDeployment(t *testing.T) {
 		},
 		{
 			name:        "deployment with absolute unavailable/surge values",
-			deployment:  *deploymentFromYaml(t, deploymentWithAbsoluteValues),
+			deployment:  deploymentWithAbsoluteValues,
 			cpu:         resource.MustParse("12"),
 			memory:      resource.MustParse("48Gi"),
 			replicas:    10,
@@ -48,7 +47,7 @@ func TestDeployment(t *testing.T) {
 		},
 		{
 			name:        "zero replica deployment",
-			deployment:  *deploymentFromYaml(t, zeroReplicaDeployment),
+			deployment:  zeroReplicaDeployment,
 			cpu:         resource.MustParse("0"),
 			memory:      resource.MustParse("0"),
 			replicas:    0,
@@ -57,7 +56,7 @@ func TestDeployment(t *testing.T) {
 		},
 		{
 			name:        "recreate deployment",
-			deployment:  *deploymentFromYaml(t, recrateDeployment),
+			deployment:  recrateDeployment,
 			cpu:         resource.MustParse("10"),
 			memory:      resource.MustParse("40Gi"),
 			replicas:    10,
@@ -66,7 +65,7 @@ func TestDeployment(t *testing.T) {
 		},
 		{
 			name:        "deployment without max unavailable/surge values",
-			deployment:  *deploymentFromYaml(t, deploymentWithoutValues),
+			deployment:  deploymentWithoutValues,
 			cpu:         resource.MustParse("11"),
 			memory:      resource.MustParse("44Gi"),
 			replicas:    10,
@@ -75,7 +74,7 @@ func TestDeployment(t *testing.T) {
 		},
 		{
 			name:        "deployment with init container(s)",
-			deployment:  *deploymentFromYaml(t, initContainerDeployment),
+			deployment:  initContainerDeployment,
 			cpu:         resource.MustParse("4400m"),
 			memory:      resource.MustParse("17184Mi"),
 			replicas:    3,
@@ -88,7 +87,7 @@ func TestDeployment(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			r := require.New(t)
 
-			usage, err := Deployment(test.deployment)
+			usage, err := ResourceQuotaFromYaml([]byte(test.deployment))
 			r.NoError(err)
 			r.NotEmpty(usage)
 
@@ -99,13 +98,4 @@ func TestDeployment(t *testing.T) {
 			r.Equal(test.maxReplicas, usage.Details.MaxReplicas, "maxReplicas")
 		})
 	}
-}
-
-func deploymentFromYaml(t *testing.T, deployment string) *appsv1.Deployment {
-	object, _, err := scheme.Codecs.UniversalDeserializer().Decode([]byte(deployment), nil, nil)
-	if err != nil {
-		t.Error(err)
-	}
-
-	return object.(*appsv1.Deployment)
 }

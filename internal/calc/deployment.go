@@ -9,9 +9,9 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-// Deployment calculates the cpu/memory resources a single deployment needs. Replicas and the deployment
+// calculates the cpu/memory resources a single deployment needs. Replicas and the deployment
 // strategy are taken into account.
-func Deployment(deployment appsv1.Deployment) (*ResourceUsage, error) {
+func deployment(deployment appsv1.Deployment) (*ResourceUsage, error) {
 	var (
 		resourceOverhead float64 // max overhead compute resources (percent)
 		podOverhead      int32   // max overhead pods during deployment

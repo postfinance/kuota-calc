@@ -6,8 +6,8 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 )
 
-// StatefulSet calculates the cpu/memory resources a single statefulset needs. Replicas are taken into account.
-func StatefulSet(s appsv1.StatefulSet) (*ResourceUsage, error) {
+// calculates the cpu/memory resources a single statefulset needs. Replicas are taken into account.
+func statefulSet(s appsv1.StatefulSet) *ResourceUsage {
 	var (
 		replicas int32
 	)
@@ -39,5 +39,5 @@ func StatefulSet(s appsv1.StatefulSet) (*ResourceUsage, error) {
 		},
 	}
 
-	return &resourceUsage, nil
+	return &resourceUsage
 }
