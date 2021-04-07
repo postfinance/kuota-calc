@@ -8,13 +8,9 @@ jobs:
   goreleaser:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@master
-    - name: Setup Go
-      uses: actions/setup-go@v2
-    - run: go version
-    - run: go test -cover ./...
-    - name: GoReleaser
+    - uses: actions/checkout@v2
+    - uses: actions/setup-go@v2
+    - name: Run goreleaser
       uses: goreleaser/goreleaser-action@v1
       with:
         version: latest

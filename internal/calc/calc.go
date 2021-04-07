@@ -58,12 +58,16 @@ func podResources(podSpec *v1.PodSpec) (cpu, memory *resource.Quantity) {
 	cpu = new(resource.Quantity)
 	memory = new(resource.Quantity)
 
-	for _, container := range podSpec.Containers {
+	for i := range podSpec.Containers {
+		container := podSpec.Containers[i]
+
 		cpu.Add(*container.Resources.Limits.Cpu())
 		memory.Add(*container.Resources.Limits.Memory())
 	}
 
-	for _, container := range podSpec.InitContainers {
+	for i := range podSpec.InitContainers {
+		container := podSpec.InitContainers[i]
+
 		cpu.Add(*container.Resources.Limits.Cpu())
 		memory.Add(*container.Resources.Limits.Memory())
 	}

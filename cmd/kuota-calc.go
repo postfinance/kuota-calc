@@ -99,6 +99,7 @@ func (opts *KuotaCalcOpts) run() error {
 				if opts.debug {
 					fmt.Fprintf(opts.Out, "DEBUG: %s\n", err)
 				}
+
 				continue
 			}
 
