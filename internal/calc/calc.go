@@ -4,7 +4,6 @@ package calc
 import (
 	"errors"
 	"fmt"
-	"reflect"
 
 	"github.com/rs/zerolog/log"
 	appsv1 "k8s.io/api/apps/v1"
@@ -12,7 +11,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/kubernetes/scheme"
 )
 
@@ -87,17 +85,9 @@ func podResources(podSpec *v1.PodSpec) (cpu, memory *resource.Quantity) {
 // * apps/v1 - Deployment
 // * apps/v1 - StatefulSet
 // * apps/v1 - DaemonSet
+// * batch/v1 - Cronjob
+// * batch/v1 - Job
 // * v1 - Pod
-type banana struct {
-	schemeName string
-	gvk        schema.GroupVersionKind
-	target     runtime.GroupVersioner
-	t          reflect.Type
-}
-
-func (b *banana) Error() string {
-	return ""
-}
 
 func ResourceQuotaFromYaml(yamlData []byte) (*ResourceUsage, error) {
 
