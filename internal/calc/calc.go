@@ -4,11 +4,16 @@ package calc
 import (
 	"errors"
 	"fmt"
+	"reflect"
 
+	"github.com/rs/zerolog/log"
 	appsv1 "k8s.io/api/apps/v1"
+	batchV1 "k8s.io/api/batch/v1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
-	"k8s.io/client-go/deprecated/scheme"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/kubernetes/scheme"
 )
 
 var (
@@ -24,7 +29,8 @@ type CalculationError struct {
 }
 
 func (cErr CalculationError) Error() string {
-	return fmt.Sprintf("calculating %s/%s resource usage: %s",
+	return fmt.Sprintf(
+		"calculating %s/%s resource usage: %s",
 		cErr.Version,
 		cErr.Kind,
 		cErr.err,
@@ -80,10 +86,42 @@ func podResources(podSpec *v1.PodSpec) (cpu, memory *resource.Quantity) {
 // Currently supported:
 // * apps/v1 - Deployment
 // * apps/v1 - StatefulSet
+// * apps/v1 - DaemonSet
+// * v1 - Pod
+type banana struct {
+	schemeName string
+	gvk        schema.GroupVersionKind
+	target     runtime.GroupVersioner
+	t          reflect.Type
+}
+
+func (b *banana) Error() string {
+	return ""
+}
+
 func ResourceQuotaFromYaml(yamlData []byte) (*ResourceUsage, error) {
+
+	var version string
+	var kind string
+
 	object, gvk, err := scheme.Codecs.UniversalDeserializer().Decode(yamlData, nil, nil)
+
 	if err != nil {
-		return nil, fmt.Errorf("decoding yaml data: %w", err)
+		// when the kind is not found, I just warn and skip
+		if runtime.IsNotRegisteredError(err) {
+			log.Warn().Msg(err.Error())
+			unknown := runtime.Unknown{Raw: yamlData}
+
+			if _, gvk1, err := scheme.Codecs.UniversalDeserializer().Decode(yamlData, nil, &unknown); err == nil {
+				kind = gvk1.Kind
+				version = gvk1.Version
+			}
+		} else {
+			return nil, fmt.Errorf("decoding yaml data: %w", err)
+		}
+	} else {
+		kind = gvk.Kind
+		version = gvk.Version
 	}
 
 	switch obj := object.(type) {
@@ -100,10 +138,18 @@ func ResourceQuotaFromYaml(yamlData []byte) (*ResourceUsage, error) {
 		return usage, nil
 	case *appsv1.StatefulSet:
 		return statefulSet(*obj), nil
+	case *appsv1.DaemonSet:
+		return daemonSet(*obj), nil
+	case *batchV1.Job:
+		return job(*obj), nil
+	case *batchV1.CronJob:
+		return cronjob(*obj), nil
+	case *v1.Pod:
+		return pod(*obj), nil
 	default:
 		return nil, CalculationError{
-			Version: gvk.Version,
-			Kind:    gvk.Kind,
+			Version: version,
+			Kind:    kind,
 			err:     ErrResourceNotSupported,
 		}
 	}
