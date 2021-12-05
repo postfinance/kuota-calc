@@ -5,7 +5,6 @@ import (
 )
 
 func daemonSet(dSet appsv1.DaemonSet) *ResourceUsage {
-
 	cpu, memory := podResources(&dSet.Spec.Template.Spec)
 
 	resourceUsage := ResourceUsage{

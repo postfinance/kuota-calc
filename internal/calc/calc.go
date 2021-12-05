@@ -88,10 +88,9 @@ func podResources(podSpec *v1.PodSpec) (cpu, memory *resource.Quantity) {
 // * batch/v1 - Cronjob
 // * batch/v1 - Job
 // * v1 - Pod
-
 func ResourceQuotaFromYaml(yamlData []byte) (*ResourceUsage, error) {
-
 	var version string
+
 	var kind string
 
 	object, gvk, err := scheme.Codecs.UniversalDeserializer().Decode(yamlData, nil, nil)
@@ -100,6 +99,7 @@ func ResourceQuotaFromYaml(yamlData []byte) (*ResourceUsage, error) {
 		// when the kind is not found, I just warn and skip
 		if runtime.IsNotRegisteredError(err) {
 			log.Warn().Msg(err.Error())
+
 			unknown := runtime.Unknown{Raw: yamlData}
 
 			if _, gvk1, err := scheme.Codecs.UniversalDeserializer().Decode(yamlData, nil, &unknown); err == nil {

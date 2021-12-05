@@ -3,7 +3,6 @@ package calc
 import v1 "k8s.io/api/core/v1"
 
 func pod(pod v1.Pod) *ResourceUsage {
-
 	cpu, memory := podResources(&pod.Spec)
 
 	resourceUsage := ResourceUsage{
