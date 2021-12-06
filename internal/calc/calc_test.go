@@ -7,6 +7,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var unsupportedOpenshiftRoute = `---
+apiVersion: v1
+kind: Route
+metadata:
+  name: coffee-route
+spec:
+  host: cafe.example.com
+  path: "/coffee"
+  to:
+    kind: Service
+    name: coffee-svc `
+
+
 var normalDeployment = `---
 apiVersion: apps/v1
 kind: Deployment
@@ -419,6 +432,102 @@ spec:
   sessionAffinity: None
   type: ClusterIP`
 
+var normalJob = `
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pi
+spec:
+  template:
+    spec:
+      containers:
+        - name: pi
+          image: alpine
+          resources:
+            limits:
+              cpu: "1"
+              memory: 4Gi
+            requests:
+              cpu: 250m
+              memory: 2Gi
+      restartPolicy: Never
+  backoffLimit: 4`
+
+var normalCronJob =`---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: hello
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: hello
+              image: busybox
+              resources:
+                limits:
+                  cpu: "1"
+                  memory: 4Gi
+                requests:
+                  cpu: 250m
+                  memory: 2Gi
+              imagePullPolicy: IfNotPresent
+          restartPolicy: OnFailure`
+
+var normalPod = `
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: mypod
+  name: mypod
+spec:
+  containers:
+  - image: mypod
+    imagePullPolicy: Always
+    name: myapp
+    resources:
+      limits:
+        cpu: "1"
+        memory: 4Gi
+      requests:
+        cpu: 250m
+        memory: 2Gi
+  terminationGracePeriodSeconds: 30`
+
+var  normalDaemonSet = `
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: mydaemonset
+  labels:
+    app: mydaemonset
+spec:
+  selector:
+    matchLabels:
+      name: mydaemonset
+  template:
+    metadata:
+      labels:
+        name: mydaemonset
+    spec:
+      containers:
+      - name: mydaemonset
+        image: quay.io/fluentd_elasticsearch/fluentd:v2.5.2
+        resources:
+          limits:
+            memory: 2Gi 
+            cpu: "2"
+          requests:
+            cpu: 500m
+            memory: 200Mi
+      terminationGracePeriodSeconds: 30`
+
 func TestResourceQuotaFromYaml(t *testing.T) {
 	r := require.New(t)
 
@@ -431,4 +540,12 @@ func TestResourceQuotaFromYaml(t *testing.T) {
 
 	r.True(errors.As(err, &calcErr))
 	r.Equal("calculating v1/Service resource usage: resource not supported", calcErr.Error())
+
+	usage, err = ResourceQuotaFromYaml([]byte(unsupportedOpenshiftRoute))
+	t.Log(err)
+	r.Error(err)
+	r.True(errors.Is(err,ErrResourceNotSupported))
+	r.Nil(usage)
+	r.True(errors.As(err,&calcErr))
 }
+

@@ -8,16 +8,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: docker://golangci/golangci-lint:v1.39.0
+    - uses: golangci/golangci-lint-action@v2
       with:
-        args: golangci-lint run
-      env:
-        CGO_ENABLED: 0
+        version: v1.43.0
+        args: --timeout 5m
   test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-go@v2
+      with:
+        go-version: 1.17
     - name: Print go version
       run: go version
     - name: Run unit tests
