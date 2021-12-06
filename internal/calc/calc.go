@@ -85,7 +85,7 @@ func podResources(podSpec *v1.PodSpec) (cpu, memory *resource.Quantity) {
 // * apps/v1 - Deployment
 // * apps/v1 - StatefulSet
 // * apps/v1 - DaemonSet
-// * batch/v1 - Cronjob
+// * batch/v1 - CronJob
 // * batch/v1 - Job
 // * v1 - Pod
 func ResourceQuotaFromYaml(yamlData []byte) (*ResourceUsage, error) {

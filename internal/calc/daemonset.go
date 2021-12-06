@@ -15,8 +15,8 @@ func daemonSet(dSet appsv1.DaemonSet) *ResourceUsage {
 			Kind:        dSet.Kind,
 			Name:        dSet.Name,
 			Strategy:    "",
-			Replicas:    0,
-			MaxReplicas: 0,
+			Replicas:    1,
+			MaxReplicas: 1,
 		},
 	}
 
