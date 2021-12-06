@@ -21,6 +21,8 @@ func TestDaemonSet(t *testing.T) {
 		{
 			name:      "ok",
 			daemonset: normalDaemonSet,
+			replicas: 1,
+			maxReplicas: 1,
 			cpu:       resource.MustParse("2"),
 			memory:    resource.MustParse("2Gi"),
 		},
