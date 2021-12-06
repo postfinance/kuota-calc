@@ -8,9 +8,8 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
-//nolint:gochecknoglobals
+//nolint:gochecknoglobals // Set by goreleaser on build
 var (
-	// set by goreleaser on build
 	version, date, commit string = "master", "?", "?"
 )
 

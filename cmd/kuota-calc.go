@@ -16,7 +16,7 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
-var (
+const (
 	kuotaCalcExample = `    # provide a simple/complex deployment by piping it to kuota-calc (used as kubectl plugin)
     cat deployment.yaml | kubectl %[1]s
 
