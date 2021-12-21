@@ -1,0 +1,35 @@
+apiVersion: krew.googlecontainertools.github.com/v1alpha2
+kind: Plugin
+metadata:
+  name: kuota-calc
+spec:
+  version: {{ .TagName }}
+  homepage: https://github.com/postfinance/kuota-calc
+  shortDescription: Calculate needed quota to perform rolling updates.
+  description: |
+    This plugin calculates the maximum needed resource quota for you. The deployment
+    strategy, replicas and all containers are taken into account to calculate the
+    resources needed in order to be able to perform a rolling update and still have
+    enough resource quota.
+  caveats: |
+    * Currently kuota-calc supports apps/v1.Deployment, apps/v1.StatefulSet,
+    apps/v1.DaemonSet, batch/v1.CronJob, batch/v1.Job and v1.Pod resources
+  platforms:
+  - selector:
+      matchLabels:
+        os: darwin
+        arch: amd64
+    {{ addURIAndSha "https://github.com/postfinance/kuota-calc/releases/download/{{ .TagName}}/kuota-calc_darwin_x86_64.zip" .TagName }}
+    bin: kuota-calc
+  - selector:
+      matchLabels:
+        os: linux
+        arch: amd64
+    {{ addURIAndSha "https://github.com/postfinance/kuota-calc/releases/download/{{ .TagName}}/kuota-calc_linux_x86_64.zip" .TagName }}
+    bin: kuota-calc
+  - selector:
+      matchLabels:
+        os: windows
+        arch: amd64
+    {{ addURIAndSha "https://github.com/postfinance/kuota-calc/releases/download/{{ .TagName}}/kuota-calc_windows.zip" .TagName }}
+    bin: kuota-calc.exe
