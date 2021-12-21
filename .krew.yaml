@@ -19,17 +19,17 @@ spec:
       matchLabels:
         os: darwin
         arch: amd64
-    {{ addURIAndSha "https://github.com/postfinance/kuota-calc/releases/download/{{ .TagName}}/kuota-calc_darwin_x86_64.zip" .TagName }}
+    {{ addURIAndSha "https://github.com/postfinance/kuota-calc/releases/download/{{ .TagName }}/kuota-calc_darwin_x86_64.zip" .TagName }}
     bin: kuota-calc
   - selector:
       matchLabels:
         os: linux
         arch: amd64
-    {{ addURIAndSha "https://github.com/postfinance/kuota-calc/releases/download/{{ .TagName}}/kuota-calc_linux_x86_64.zip" .TagName }}
+    {{ addURIAndSha "https://github.com/postfinance/kuota-calc/releases/download/{{ .TagName }}/kuota-calc_linux_x86_64.zip" .TagName }}
     bin: kuota-calc
   - selector:
       matchLabels:
         os: windows
         arch: amd64
-    {{ addURIAndSha "https://github.com/postfinance/kuota-calc/releases/download/{{ .TagName}}/kuota-calc_windows.zip" .TagName }}
+    {{ addURIAndSha "https://github.com/postfinance/kuota-calc/releases/download/{{ .TagName }}/kuota-calc_windows_x86_64.zip" .TagName }}
     bin: kuota-calc.exe
